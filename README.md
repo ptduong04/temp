@@ -33,6 +33,13 @@ w10/
 │   └── README.md         # Alert setup guide
 ├── app-common/           # Common resources
 │   └── demo-namespace.yaml # Namespace demo
+├── rbac/                 # RBAC roles and bindings
+│   ├── roles.yaml        # developer, sre, viewer roles
+│   └── rolebindings.yaml # alice, bob, carol bindings
+├── gatekeeper/           # Admission policy as code
+│   ├── templates/        # ConstraintTemplates
+│   ├── constraints/      # Enforced Constraints
+│   └── tests/            # Manual reject/pass test manifests
 ├── src/                  # Source code
 │   └── api/              # Flask API application
 ├── argocd/
@@ -41,6 +48,10 @@ w10/
 │   │   ├── app-analysis.yaml # Deploy AnalysisTemplate
 │   │   ├── app-alert.yaml # Deploy PrometheusRule
 │   │   ├── app-common.yaml # Deploy common resources
+│   │   ├── rbac.yaml     # Deploy RBAC lab resources
+│   │   ├── gatekeeper.yaml # Install Gatekeeper
+│   │   ├── gatekeeper-templates.yaml # Deploy policy templates
+│   │   ├── gatekeeper-constraints.yaml # Deploy enforced policies
 │   │   ├── k8s-prometheus.yaml # Prometheus + AlertManager
 │   │   └── k8s-rollout.yaml # Argo Rollouts controller
 │   └── root.yaml         # App of Apps pattern
@@ -103,6 +114,7 @@ kubectl apply -f app-alert/email-secret.yaml
 ### Core
 - **Argo Rollouts**: Progressive delivery controller
 - **Prometheus Stack**: Metrics collection + AlertManager
+- **OPA Gatekeeper**: Admission policy controller
 - **API**: Flask application với metrics endpoint
 
 ### GitOps Applications
@@ -110,6 +122,10 @@ kubectl apply -f app-alert/email-secret.yaml
 - `app-analysis`: AnalysisTemplate cho automated validation
 - `app-alert`: PrometheusRule cho runtime alerting
 - `app-common`: Shared resources (namespace)
+- `rbac`: RBAC roles for `alice`, `bob`, `carol`
+- `gatekeeper`: OPA Gatekeeper controller
+- `gatekeeper-templates`: ConstraintTemplates for admission policies
+- `gatekeeper-constraints`: Enforced admission constraints
 - `k8s-prometheus`: Monitoring stack
 - `k8s-rollout`: Argo Rollouts controller
 
@@ -197,9 +213,26 @@ git push origin main
 ### Sync Waves
 ArgoCD applications deploy in order:
 - Wave -1: `app-common` (namespace)
-- Wave 0: `k8s-prometheus`, `k8s-rollout` (infrastructure)
-- Wave 1: `app-analysis`, `app-alert` (configuration)
-- Wave 2: `app-api` (application)
+- Wave 0: `k8s-prometheus`, `k8s-rollout`, `gatekeeper` (infrastructure)
+- Wave 1: `rbac`, `gatekeeper-templates`, `app-analysis`, `app-alert` (configuration)
+- Wave 2: `gatekeeper-constraints` (enforcement)
+- Wave 3: `app-api` (application)
+
+### RBAC and Admission Checks
+```bash
+kubectl auth can-i create deploy -n demo --as alice
+kubectl auth can-i create deploy -n kube-system --as alice
+kubectl auth can-i get pods -A --as bob
+kubectl auth can-i delete nodes --as carol
+
+kubectl apply -f gatekeeper/tests/pod-latest.yaml
+kubectl apply -f gatekeeper/tests/pod-no-limits.yaml
+kubectl apply -f gatekeeper/tests/pod-root-user.yaml
+kubectl apply -f gatekeeper/tests/pod-host-network.yaml
+kubectl apply -f gatekeeper/tests/deployment-no-owner.yaml
+kubectl apply -f gatekeeper/tests/pod-valid.yaml
+kubectl apply -f gatekeeper/tests/deployment-owner.yaml
+```
 
 ## Cleanup
 

@@ -1,24 +1,31 @@
-# ArgoCD App: Deploy common resources (namespace)
+# ArgoCD App: Deploy Gatekeeper ConstraintTemplates.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: common
+  name: gatekeeper-templates
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "-1"
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
   source:
     repoURL: https://github.com/ptduong04/temp.git
-    path: app-common
+    path: gatekeeper/templates
     targetRevision: main
   destination:
     server: https://kubernetes.default.svc
-    namespace: demo
+    namespace: gatekeeper-system
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    retry:
+      limit: 10
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m
     syncOptions:
-    - CreateNamespace=true
     - ServerSideApply=true
+    - SkipDryRunOnMissingResource=true
+    - PruneLast=true

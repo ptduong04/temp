@@ -1,0 +1,22 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequiredResourceLimits
+metadata:
+  name: require-resource-limits
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  enforcementAction: deny
+  match:
+    kinds:
+    - apiGroups: [""]
+      kinds: ["Pod"]
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - argocd
+    - argo-rollouts
+    - monitoring
+    - gatekeeper-system
+  parameters:
+    limits: ["cpu", "memory"]

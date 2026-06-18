@@ -1,0 +1,22 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sDisallowedImageTags
+metadata:
+  name: disallow-image-latest
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  enforcementAction: deny
+  match:
+    kinds:
+    - apiGroups: [""]
+      kinds: ["Pod"]
+    excludedNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - argocd
+    - argo-rollouts
+    - monitoring
+    - gatekeeper-system
+  parameters:
+    tags: ["latest"]
