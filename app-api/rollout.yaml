@@ -21,6 +21,10 @@ spec:
         app: api
         owner: team-platform
     spec:
+      volumes:
+      - name: db-secret
+        secret:
+          secretName: db-secret
       containers:
       - name: api
         image: ghcr.io/ptduong04/w10-api:0.0.1
@@ -33,6 +37,12 @@ spec:
           value: "v0.0.1"
         - name: ERROR_RATE
           value: "0"
+        - name: DB_PASSWORD_FILE
+          value: /var/run/secrets/db/password
+        volumeMounts:
+        - name: db-secret
+          mountPath: /var/run/secrets/db
+          readOnly: true
         livenessProbe:
           httpGet:
             path: /healthz

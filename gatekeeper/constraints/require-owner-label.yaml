@@ -20,5 +20,7 @@ spec:
     - argo-rollouts
     - monitoring
     - gatekeeper-system
+    - external-secrets
+    - cosign-system
   parameters:
     labels: ["owner"]
