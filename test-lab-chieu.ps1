@@ -218,7 +218,7 @@ function Test-UnsignedImageReject {
     Write-Host ""
     
     # Create temp file
-    $testPod = @"
+    $testPod = @'
 apiVersion: v1
 kind: Pod
 metadata:
@@ -228,11 +228,11 @@ spec:
   containers:
   - name: nginx
     image: nginx:1.27
-"@
+'@
     
-    $testPod | kubectl apply -f - 2>&1 | Tee-Object -Variable output
+    $output = $testPod | kubectl apply -f - 2>&1
     
-    if ($output -match "denied|rejected|failed policy") {
+    if ($output -match 'denied|rejected|failed policy') {
         Write-Success "Unsigned image REJECTED as expected ✅"
     } else {
         Write-Fail "Unsigned image was NOT rejected ❌"
@@ -296,38 +296,38 @@ function Test-Gatekeeper {
     
     # Test 1: Image latest (should reject)
     Write-Info "Test 1: Rejecting image:latest..."
-    kubectl apply -f gatekeeper/tests/pod-latest.yaml 2>&1 | Tee-Object -Variable out1
-    if ($out1 -match "denied|rejected") { Write-Success "Rejected image:latest ✅" } else { Write-Fail "Did not reject image:latest ❌" }
+    $out1 = kubectl apply -f gatekeeper/tests/pod-latest.yaml 2>&1
+    if ($out1 -match 'denied|rejected') { Write-Success "Rejected image:latest ✅" } else { Write-Fail "Did not reject image:latest ❌" }
     
     # Test 2: No limits (should reject)
     Write-Info "Test 2: Rejecting pod without limits..."
-    kubectl apply -f gatekeeper/tests/pod-no-limits.yaml 2>&1 | Tee-Object -Variable out2
-    if ($out2 -match "denied|rejected") { Write-Success "Rejected pod without limits ✅" } else { Write-Fail "Did not reject no-limits ❌" }
+    $out2 = kubectl apply -f gatekeeper/tests/pod-no-limits.yaml 2>&1
+    if ($out2 -match 'denied|rejected') { Write-Success "Rejected pod without limits ✅" } else { Write-Fail "Did not reject no-limits ❌" }
     
     # Test 3: Root user (should reject)
     Write-Info "Test 3: Rejecting root user..."
-    kubectl apply -f gatekeeper/tests/pod-root-user.yaml 2>&1 | Tee-Object -Variable out3
-    if ($out3 -match "denied|rejected") { Write-Success "Rejected root user ✅" } else { Write-Fail "Did not reject root user ❌" }
+    $out3 = kubectl apply -f gatekeeper/tests/pod-root-user.yaml 2>&1
+    if ($out3 -match 'denied|rejected') { Write-Success "Rejected root user ✅" } else { Write-Fail "Did not reject root user ❌" }
     
     # Test 4: Host network (should reject)
     Write-Info "Test 4: Rejecting host network..."
-    kubectl apply -f gatekeeper/tests/pod-host-network.yaml 2>&1 | Tee-Object -Variable out4
-    if ($out4 -match "denied|rejected") { Write-Success "Rejected host network ✅" } else { Write-Fail "Did not reject host network ❌" }
+    $out4 = kubectl apply -f gatekeeper/tests/pod-host-network.yaml 2>&1
+    if ($out4 -match 'denied|rejected') { Write-Success "Rejected host network ✅" } else { Write-Fail "Did not reject host network ❌" }
     
     # Test 5: No owner label (should reject)
     Write-Info "Test 5: Rejecting deployment without owner label..."
-    kubectl apply -f gatekeeper/tests/deployment-no-owner.yaml 2>&1 | Tee-Object -Variable out5
-    if ($out5 -match "denied|rejected") { Write-Success "Rejected no owner label ✅" } else { Write-Fail "Did not reject no owner ❌" }
+    $out5 = kubectl apply -f gatekeeper/tests/deployment-no-owner.yaml 2>&1
+    if ($out5 -match 'denied|rejected') { Write-Success "Rejected no owner label ✅" } else { Write-Fail "Did not reject no owner ❌" }
     
     # Test 6: Valid pod (should pass)
     Write-Info "Test 6: Accepting valid pod..."
-    kubectl apply -f gatekeeper/tests/pod-valid.yaml 2>&1 | Tee-Object -Variable out6
-    if ($out6 -match "created") { Write-Success "Accepted valid pod ✅" } else { Write-Fail "Did not accept valid pod ❌" }
+    $out6 = kubectl apply -f gatekeeper/tests/pod-valid.yaml 2>&1
+    if ($out6 -match 'created') { Write-Success "Accepted valid pod ✅" } else { Write-Fail "Did not accept valid pod ❌" }
     
     # Test 7: Deployment with owner (should pass)
     Write-Info "Test 7: Accepting deployment with owner..."
-    kubectl apply -f gatekeeper/tests/deployment-owner.yaml 2>&1 | Tee-Object -Variable out7
-    if ($out7 -match "created") { Write-Success "Accepted deployment with owner ✅" } else { Write-Fail "Did not accept deployment ❌" }
+    $out7 = kubectl apply -f gatekeeper/tests/deployment-owner.yaml 2>&1
+    if ($out7 -match 'created') { Write-Success "Accepted deployment with owner ✅" } else { Write-Fail "Did not accept deployment ❌" }
     
     # Cleanup
     kubectl delete -f gatekeeper/tests/pod-valid.yaml --ignore-not-found 2>$null
