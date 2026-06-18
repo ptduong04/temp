@@ -13,6 +13,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository_owner }}/w10-api
+  COSIGN_EXPERIMENTAL: "1"
 
 jobs:
   build-and-push:
@@ -79,7 +80,9 @@ jobs:
         uses: sigstore/cosign-installer@v3.9.2
 
       - name: Sign versioned image with keyless Cosign
-        run: cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }}
+        run: |
+          cosign sign --yes \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.semver.outputs.version }}
 
       - name: Update rollout.yaml with new version
         run: |
@@ -100,5 +103,9 @@ jobs:
 
       - name: Create git tag
         run: |
-          git tag v${{ steps.semver.outputs.version }}
-          git push origin v${{ steps.semver.outputs.version }}
+          if git rev-parse "v${{ steps.semver.outputs.version }}" >/dev/null 2>&1; then
+            echo "Tag v${{ steps.semver.outputs.version }} already exists"
+          else
+            git tag v${{ steps.semver.outputs.version }}
+            git push origin v${{ steps.semver.outputs.version }}
+          fi

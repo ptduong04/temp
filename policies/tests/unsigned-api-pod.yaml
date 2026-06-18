@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: unsigned-api
+  namespace: demo
+  labels:
+    app: unsigned-api
+    owner: team-platform
+spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+  containers:
+  - name: api
+    image: ghcr.io/ptduong04/w10-api:unsigned-demo
+    imagePullPolicy: IfNotPresent
+    command: ["python", "-c", "import time; time.sleep(3600)"]
+    resources:
+      limits:
+        cpu: 100m
+        memory: 64Mi

@@ -1,27 +1,20 @@
-# ArgoCD App: Install External Secrets Operator and CRDs.
+# ArgoCD App: Install Sigstore Policy Controller and CRDs.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: external-secrets
+  name: policy-controller
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   project: default
   source:
-    repoURL: https://charts.external-secrets.io
-    chart: external-secrets
-    targetRevision: 0.10.4
-    helm:
-      values: |
-        webhook:
-          failurePolicy: Ignore
-          readinessProbe:
-            timeoutSeconds: 5
-            failureThreshold: 6
+    repoURL: https://sigstore.github.io/helm-charts
+    chart: policy-controller
+    targetRevision: 0.10.6
   destination:
     server: https://kubernetes.default.svc
-    namespace: external-secrets
+    namespace: cosign-system
   syncPolicy:
     automated:
       prune: true
